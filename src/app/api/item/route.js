@@ -1,89 +1,66 @@
-// src/app/api/item/route.js 
+// src/app/api/item/route.js
 
- 
+import { getClientPromise } from "@/lib/mongodb";
 
-import { getClientPromise } from "@/lib/mongodb"; 
+import { errorResponse, printExceptionLog, successResponse } from "@/lib/utils";
 
-import { errorResponse, printExceptionLog, successResponse } from "@/lib/utils"; 
+export async function GET(request) {
+  try {
+    const client = await getClientPromise();
 
- 
+    const db = client.db(process.env.DB_NAME);
 
-export async function GET(request) { 
+    const itemList = await db
+      .collection("item")
+      .find({ status: { $ne: "DELETED" } })
+      .toArray();
 
-  try { 
+    return successResponse({ itemList }, 201);
+  } catch (error) {
+    printExceptionLog("GET Items", error);
 
-    const client = await getClientPromise(); 
+    return errorResponse("GET Item Internal Error", 500);
+  }
+}
 
-    const db = client.db(process.env.DB_NAME); 
+export async function POST(request) {
+  try {
+    const data = await request.json();
 
-    const itemList = await db.collection("item").find({status: { $ne: "DELETED" }}).toArray(); 
+    const name = data.name;
 
-    return successResponse({ itemList }, 201); 
+    const category = data.category;
 
-  } catch (error) { 
+    const price = data.price;
 
-    printExceptionLog("GET Items", error); 
+    const amount = data.amount;
 
-    return errorResponse("GET Item Internal Error", 500); 
+    const client = await getClientPromise();
 
-  } 
+    const db = client.db(process.env.DB_NAME);
 
-} 
+    const insertResult = await db.collection("item").insertOne({
+      name: name,
 
- 
+      category: category,
 
-export async function POST(request) { 
+      price: price,
 
-  try { 
+      amount: amount,
 
-    const data = await request.json(); 
+      status: "ACTIVE",
+    });
 
-    const name = data.name; 
+    return successResponse(
+      {
+        id: insertResult.insertedId,
+      },
 
-    const category = data.category; 
+      201,
+    );
+  } catch (error) {
+    printExceptionLog("POST Items", error);
 
-    const price = data.price; 
-
-    const amount = data.amount; 
-
- 
-
-    const client = await getClientPromise(); 
-
-    const db = client.db(process.env.DB_NAME); 
-
-    const insertResult = await db.collection("item").insertOne({ 
-
-      name: name, 
-
-      category: category, 
-
-      price: price, 
-
-      amount: amount, 
-
-      status: "ACTIVE",
-
-    }); 
-
-    return successResponse( 
-
-      { 
-
-        id: insertResult.insertedId, 
-
-      }, 
-
-      201, 
-
-    ); 
-
-  } catch (error) { 
-
-    printExceptionLog("POST Items", error); 
-
-    return errorResponse("POST Item Internal Error", 500); 
-
-  } 
-
-} 
+    return errorResponse("POST Item Internal Error", 500);
+  }
+}
