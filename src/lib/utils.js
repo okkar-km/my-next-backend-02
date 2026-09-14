@@ -1,49 +1,33 @@
-// src/lib/utils.js 
+// src/lib/utils.js
 
- 
+import { NextResponse } from "next/server";
 
-import { NextResponse } from "next/server"; 
+import corsHeaders from "./cors";
 
-import corsHeaders from "./cors"; 
+export function printExceptionLog(logMessage, error) {
+  console.log(`==>${logMessage} Exception`);
 
-export function printExceptionLog(logMessage, error) { 
+  console.log(error);
+}
 
-  console.log(`==>${logMessage} Exception`); 
+export function errorResponse(message, status) {
+  return NextResponse.json(
+    {
+      message: message,
+    },
 
-  console.log(error); 
+    {
+      status: status,
 
-} 
+      headers: corsHeaders,
+    },
+  );
+}
 
-export function errorResponse(message, status) { 
+export function successResponse(jsonData, status) {
+  return NextResponse.json(jsonData, {
+    status: status,
 
-  return NextResponse.json( 
-
-    { 
-
-      message: message, 
-
-    }, 
-
-    { 
-
-      status: status, 
-
-      headers: corsHeaders, 
-
-    }, 
-
-  ); 
-
-} 
-
-export function successResponse(jsonData, status) { 
-
-  return NextResponse.json(jsonData, { 
-
-    status: status, 
-
-    headers: corsHeaders, 
-
-  }); 
-
-} 
+    headers: corsHeaders,
+  });
+}
