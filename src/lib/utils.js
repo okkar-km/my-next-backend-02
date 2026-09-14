@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 
-import corsHeaders from "./cors";
+import { getCorsHeaders } from "./cors";
 
 export function printExceptionLog(logMessage, error) {
   console.log(`==>${logMessage} Exception`);
@@ -10,7 +10,7 @@ export function printExceptionLog(logMessage, error) {
   console.log(error);
 }
 
-export function errorResponse(message, status) {
+export function errorResponse(message, status, origin) {
   return NextResponse.json(
     {
       message: message,
@@ -19,15 +19,15 @@ export function errorResponse(message, status) {
     {
       status: status,
 
-      headers: corsHeaders,
+      headers: getCorsHeaders(origin),
     },
   );
 }
 
-export function successResponse(jsonData, status) {
+export function successResponse(jsonData, status, origin) {
   return NextResponse.json(jsonData, {
     status: status,
 
-    headers: corsHeaders,
+    headers: getCorsHeaders(origin),
   });
 }

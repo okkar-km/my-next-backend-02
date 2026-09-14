@@ -1,6 +1,6 @@
 //src/app/api/user/route.js
 
-import corsHeaders from "@/lib/cors";
+import { getCorsHeaders } from "@/lib/cors";
 
 import { getClientPromise } from "@/lib/mongodb";
 
@@ -13,8 +13,10 @@ import { isAdmin } from "@/lib/auth";
 import { errorResponse, successResponse } from "@/lib/utils";
 
 export async function GET(request) {
+  const origin = request.headers.get("origin");
+
   if (!isAdmin(request)) {
-    return errorResponse("Unauthorized Request", 403);
+    return errorResponse("Unauthorized Request", 403, origin);
   }
 
   const searchParams = request.nextUrl.searchParams;
@@ -52,19 +54,21 @@ export async function GET(request) {
       size: size,
     };
 
-    return successResponse(output, 201);
+    return successResponse(output, 201, origin);
   } catch (error) {
     console.log("==>GET user exception");
 
     console.log(error);
   }
 
-  return NextResponse.json({});
+  return NextResponse.json({}, { headers: getCorsHeaders(origin) });
 }
 
 export async function POST(request) {
+  const origin = request.headers.get("origin");
+
   if (!isAdmin(request)) {
-    return errorResponse("Unauthorized Request", 403);
+    return errorResponse("Unauthorized Request", 403, origin);
   }
 
   const data = await request.json();
@@ -80,7 +84,7 @@ export async function POST(request) {
   const lastname = data.lastname;
 
   if (!username || !email || !password) {
-    return errorResponse("Missing mandatory data", 400);
+    return errorResponse("Missing mandatory data", 400, origin);
   }
 
   try {
@@ -104,7 +108,7 @@ export async function POST(request) {
 
     console.log("==>Insert User Result:", result);
 
-    return successResponse({ id: result.insertedId }, 200);
+    return successResponse({ id: result.insertedId }, 200, origin);
   } catch (error) {
     console.log("==>POST user exception");
 
@@ -138,7 +142,7 @@ export async function POST(request) {
       {
         status: 400,
 
-        headers: corsHeaders,
+        headers: getCorsHeaders(origin),
       },
     );
   }

@@ -2,54 +2,62 @@
 import { getClientPromise } from "@/lib/mongodb"; 
 import { errorResponse, printExceptionLog, successResponse } from "@/lib/utils"; 
 import { ObjectId } from "mongodb"; 
-export async function GET(request, { params }) { 
-  const { item_id } = await params; 
+export async function GET(request, { params }) {
+  const origin = request.headers.get("origin");
+  const { item_id } = await params;
+
   // Validate ObjectId syntax first
   if (!ObjectId.isValid(item_id)) {
-    return errorResponse("Invalid ID format", 400);
+    return errorResponse("Invalid ID format", 400, origin);
   }
-  try { 
-    const client = await getClientPromise(); 
-    const db = client.db(process.env.DB_NAME); 
-    const item = await db 
-      .collection("item") 
-      .findOne({ _id: new ObjectId(item_id), status: { $ne: "DELETED" } }); 
-    if (item) { 
-      return successResponse( 
-        { 
-          item, 
-        }, 
-        200, 
-      ); 
-    } else return errorResponse("Item not found", 404); 
-  } catch (error) { 
-    printExceptionLog("GET Item Exception", error); 
-    return errorResponse("GET Item Internal Error", 500); 
-  } 
+
+  try {
+    const client = await getClientPromise();
+    const db = client.db(process.env.DB_NAME);
+    const item = await db
+      .collection("item")
+      .findOne({ _id: new ObjectId(item_id), status: { $ne: "DELETED" } });
+
+    if (item) {
+      return successResponse(
+        {
+          item,
+        },
+        200,
+        origin,
+      );
+    } else return errorResponse("Item not found", 404, origin);
+  } catch (error) {
+    printExceptionLog("GET Item Exception", error);
+    return errorResponse("GET Item Internal Error", 500, origin);
+  }
 } 
-export async function DELETE(request, { params }) { 
-  const { item_id } = await params; 
+export async function DELETE(request, { params }) {
+  const origin = request.headers.get("origin");
+  const { item_id } = await params;
+
   // Validate ObjectId syntax first
   if (!ObjectId.isValid(item_id)) {
-    return errorResponse("Invalid ID format", 400);
+    return errorResponse("Invalid ID format", 400, origin);
   }
-  try { 
-    const client = await getClientPromise(); 
-    const db = client.db(process.env.DB_NAME); 
-    const deleteResult = await db 
-      .collection("item") 
-      .updateOne(
-        { _id: new ObjectId(item_id) , status: { $ne: "DELETED" } },
-        { $set: { status: "DELETED" } }
-    ); 
+
+  try {
+    const client = await getClientPromise();
+    const db = client.db(process.env.DB_NAME);
+    const deleteResult = await db.collection("item").updateOne(
+      { _id: new ObjectId(item_id), status: { $ne: "DELETED" } },
+      { $set: { status: "DELETED" } },
+    );
+
     if (deleteResult.modifiedCount > 0) {
-      return successResponse({ message: "Delete Success" }, 200);
+      return successResponse({ message: "Delete Success" }, 200, origin);
     }
-    return errorResponse("Item not found or already deleted", 404); 
-  } catch (error) { 
-    printExceptionLog("DELETE Item Exception", error); 
-    return errorResponse("DELETE Item Internal Error", 500); 
-  } 
+
+    return errorResponse("Item not found or already deleted", 404, origin);
+  } catch (error) {
+    printExceptionLog("DELETE Item Exception", error);
+    return errorResponse("DELETE Item Internal Error", 500, origin);
+  }
 } 
 // export async function PUT(request, { params }) { 
 //   const { item_id } = await params; 
@@ -92,11 +100,12 @@ export async function DELETE(request, { params }) {
 // } 
 
 export async function PUT(request, { params }) {
+  const origin = request.headers.get("origin");
   const { item_id } = await params;
 
   // Validate ObjectId syntax first
   if (!ObjectId.isValid(item_id)) {
-    return errorResponse("Invalid ID format", 400);
+    return errorResponse("Invalid ID format", 400, origin);
   }
 
   try {
@@ -114,17 +123,17 @@ export async function PUT(request, { params }) {
           price: data.price,
           amount: data.amount,
         },
-      }
+      },
     );
 
     // Check if a document was found and matched
     if (updatedResult.matchedCount > 0) {
-      return successResponse({ message: "Item update success" }, 200);
+      return successResponse({ message: "Item update success" }, 200, origin);
     }
-    
-    return errorResponse("Item not found", 404);
+
+    return errorResponse("Item not found", 404, origin);
   } catch (error) {
     printExceptionLog("PUT Item Exception", error);
-    return errorResponse("PUT Item Internal Error", 500);
+    return errorResponse("PUT Item Internal Error", 500, origin);
   }
 }

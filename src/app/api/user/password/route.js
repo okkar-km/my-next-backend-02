@@ -7,9 +7,11 @@ import { getClientPromise } from "@/lib/mongodb";
 import { errorResponse, successResponse } from "@/lib/utils";
 
 export async function PUT(request) {
+  const origin = request.headers.get("origin");
+
   // Only admin can change another user's password
   if (!isAdmin(request)) {
-    return errorResponse("Forbidden", 403);
+    return errorResponse("Forbidden", 403, origin);
   }
 
   try {
@@ -21,6 +23,7 @@ export async function PUT(request) {
       return errorResponse(
         "User ID and password are required",
         400,
+        origin,
       );
     }
 
@@ -28,6 +31,7 @@ export async function PUT(request) {
       return errorResponse(
         "Password must be at least 6 characters",
         400,
+        origin,
       );
     }
 
@@ -49,7 +53,7 @@ export async function PUT(request) {
     );
 
     if (result.matchedCount === 0) {
-      return errorResponse("User not found", 404);
+      return errorResponse("User not found", 404, origin);
     }
 
     return successResponse(
@@ -57,6 +61,7 @@ export async function PUT(request) {
         message: "Password changed successfully",
       },
       200,
+      origin,
     );
   } catch (error) {
     console.error(error);
@@ -64,6 +69,7 @@ export async function PUT(request) {
     return errorResponse(
       "Change Password Internal Error",
       500,
+      origin,
     );
   }
 }

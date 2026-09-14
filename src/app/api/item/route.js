@@ -5,6 +5,8 @@ import { getClientPromise } from "@/lib/mongodb";
 import { errorResponse, printExceptionLog, successResponse } from "@/lib/utils";
 
 export async function GET(request) {
+  const origin = request.headers.get("origin");
+
   try {
     const client = await getClientPromise();
 
@@ -15,15 +17,17 @@ export async function GET(request) {
       .find({ status: { $ne: "DELETED" } })
       .toArray();
 
-    return successResponse({ itemList }, 201);
+    return successResponse({ itemList }, 201, origin);
   } catch (error) {
     printExceptionLog("GET Items", error);
 
-    return errorResponse("GET Item Internal Error", 500);
+    return errorResponse("GET Item Internal Error", 500, origin);
   }
 }
 
 export async function POST(request) {
+  const origin = request.headers.get("origin");
+
   try {
     const data = await request.json();
 
@@ -57,10 +61,11 @@ export async function POST(request) {
       },
 
       201,
+      origin,
     );
   } catch (error) {
     printExceptionLog("POST Items", error);
 
-    return errorResponse("POST Item Internal Error", 500);
+    return errorResponse("POST Item Internal Error", 500, origin);
   }
 }

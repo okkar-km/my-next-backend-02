@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 import { verifyJWT } from "./lib/auth";
 
-import corsHeaders from "./lib/cors";
+import { getCorsHeaders } from "./lib/cors";
 
 import {
   X_HEADER_USER_EMAIL,
@@ -13,11 +13,13 @@ import {
 } from "./lib/constant";
 
 export function proxy(request) {
+  const origin = request.headers.get("origin");
+
   // Handle CORS preflight requests globally for all API routes
   if (request.method === "OPTIONS") {
     return new NextResponse(null, {
       status: 204,
-      headers: corsHeaders,
+      headers: getCorsHeaders(origin),
     });
   }
 
@@ -40,7 +42,7 @@ export function proxy(request) {
       {
         status: 401,
 
-        headers: corsHeaders,
+        headers: getCorsHeaders(origin),
       },
     );
   }

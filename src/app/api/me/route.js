@@ -1,13 +1,17 @@
-//src/app/api/me/route.js 
-import { verifyJWT } from "@/lib/auth"; 
-import corsHeaders from "@/lib/cors"; 
-import { errorResponse } from "@/lib/utils"; 
-import { NextResponse } from "next/server"; 
-export function GET(request) { 
-  const user = verifyJWT(request); 
-  if (!user) { 
-    return errorResponse("Unauthorized Request", 401); 
-  } 
+//src/app/api/me/route.js
+import { verifyJWT } from "@/lib/auth";
+import { getCorsHeaders } from "@/lib/cors";
+import { errorResponse } from "@/lib/utils";
+import { NextResponse } from "next/server";
+
+export function GET(request) {
+  const origin = request.headers.get("origin");
+  const user = verifyJWT(request);
+
+  if (!user) {
+    return errorResponse("Unauthorized Request", 401, origin);
+  }
+
   return NextResponse.json(
     {
       user: {
@@ -18,7 +22,7 @@ export function GET(request) {
     },
     {
       status: 200,
-      headers: corsHeaders,
+      headers: getCorsHeaders(origin),
     },
   );
-} 
+}
