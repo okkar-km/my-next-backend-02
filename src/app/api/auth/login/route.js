@@ -3,7 +3,7 @@
 import { getCorsHeaders } from "@/lib/cors";
 import { getClientPromise } from "@/lib/mongodb";
 import { errorResponse } from "@/lib/utils";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 

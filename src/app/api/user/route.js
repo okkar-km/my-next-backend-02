@@ -6,7 +6,7 @@ import { getClientPromise } from "@/lib/mongodb";
 
 import { NextResponse } from "next/server";
 
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 import { isAdmin } from "@/lib/auth";
 
@@ -111,31 +111,30 @@ export async function POST(request) {
     return successResponse({ id: result.insertedId }, 200, origin);
   } catch (error) {
     console.log("==>POST user exception");
+    console.log(error);
 
-    const errorResponseMessage = error.errorResponse.errmsg;
-
-    console.log(errorResponseMessage);
+    const errorResponseMessage =
+      error.errorResponse?.errmsg ||
+      error.message ||
+      "Unknown error";
 
     let errorType;
-
     let errorMsg;
 
-    if (errorResponseMessage.includes("duplicate")) {
-      errorMsg = errorResponseMessage.includes("username")
+    if (errorResponseMessage.toLowerCase().includes("duplicate")) {
+      errorMsg = errorResponseMessage.toLowerCase().includes("username")
         ? "username"
         : "email";
 
       errorType = "Duplicate Data";
     } else {
       errorType = "Others";
-
       errorMsg = errorResponseMessage;
     }
 
     return NextResponse.json(
       {
         errorType: errorType,
-
         errorMsg: errorMsg,
       },
 
