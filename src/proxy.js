@@ -13,6 +13,22 @@ import {
 } from "./lib/constant";
 
 export function proxy(request) {
+  // Handle CORS preflight requests globally for all API routes
+  if (request.method === "OPTIONS") {
+    return new NextResponse(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
+  }
+
+  const { pathname } = request.nextUrl;
+  const isProtected =
+    pathname.startsWith("/api/item") || pathname.startsWith("/api/user");
+
+  if (!isProtected) {
+    return NextResponse.next();
+  }
+
   const user = verifyJWT(request);
 
   if (!user) {
@@ -45,5 +61,5 @@ export function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/api/item/:path*", "/api/user/:path*"],
+  matcher: "/api/:path*",
 };

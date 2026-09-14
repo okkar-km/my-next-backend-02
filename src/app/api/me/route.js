@@ -6,10 +6,19 @@ import { NextResponse } from "next/server";
 export function GET(request) { 
   const user = verifyJWT(request); 
   if (!user) { 
-    return errorResponse("Unauthorized Request", 401, corsHeaders); 
+    return errorResponse("Unauthorized Request", 401); 
   } 
-  return NextResponse.json(user, { 
-    status: 200, 
-    headers: corsHeaders, 
-  }); 
+  return NextResponse.json(
+    {
+      user: {
+        _id: user.id,
+        email: user.email,
+        username: user.username,
+      },
+    },
+    {
+      status: 200,
+      headers: corsHeaders,
+    },
+  );
 } 
